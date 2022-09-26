@@ -56,6 +56,7 @@ If you find this repository useful, please consider giving a star :star: and cit
   author={Jiang, Jue and Tyagi, Neelam and Tringale, Kathryn and Crane, Christopher and Veeraraghavan, Harini},
   journal={International Conference Medical Image Computing and Computer Assisted Intervention, 2022},
   pages={556--566},
+  DOI={DOI: 10.1007/978-3-031-16440-8_53},
   year={2022}
 }
 ```
