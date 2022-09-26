@@ -157,9 +157,8 @@ def main_worker(gpu, args):
            
 
             
-            ## trained transformer encoder: https://drive.google.com/file/d/1TGi46VQvbUa66mlOpqEDM02g9DeFW3dk/view?usp=sharing
-            # You can grab the pre-trained model here
-            pretrained_path = os.path.normpath('/pre_train_weight.pt')  
+            
+            pretrained_path = os.path.normpath('./Pre_trained/pre_train_weight.pt')  
 
             vit_weights = torch.load(pretrained_path)
             
