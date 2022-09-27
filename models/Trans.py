@@ -1578,7 +1578,7 @@ class WindowAttention(nn.Module):
 # below is the segmentation model 
 
 
-class TransMorph_3D_Seg(nn.Module):
+class Trans_3D_Seg(nn.Module):
     def __init__(
         self,
         config,
