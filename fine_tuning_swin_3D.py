@@ -139,25 +139,16 @@ def main_worker(gpu, args):
         
         
         config = CONFIGS_TM['Trans-Small_Unetr'] # this one add the patch size from 4 to 2
-        model = Trans.TransMorph_3D_Seg(config)
-
+        model = Trans.Trans_3D_Seg(config)
 
         calc_param = lambda net: sum(p.numel() for p in net.parameters() if p.requires_grad)
-
         
         print (model)
         print(f"Model param: {calc_param(model) / 1e6 : .2f} M")
 
-        
-
-        
-
         if args.resume_ckpt:
             
-           
 
-            
-            
             pretrained_path = os.path.normpath('./Pre_trained/pre_train_weight.pt')  
 
             vit_weights = torch.load(pretrained_path)
