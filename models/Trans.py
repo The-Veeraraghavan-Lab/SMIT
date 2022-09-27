@@ -13,6 +13,7 @@ import numpy as np
 import models.configs_Trans as configs
 #from monai.networks.blocks import UnetrUpBlock,UnetrUpOnlyBlock
 from monai.networks.blocks.dynunet_block import UnetOutBlock
+from monai.networks.blocks import UnetrBasicBlock, UnetrPrUpBlock, UnetrUpBlock,UnetrUpOnlyBlock
 import math
 import torch.nn.functional as F
 from einops import rearrange
@@ -2212,3 +2213,197 @@ class UnetrBasicBlock(nn.Module):
 
     def forward(self, inp):
         return self.layer(inp)
+
+
+
+
+class Trans_Unetr(nn.Module):
+    def __init__(
+        self,
+        config,
+        out_channels: int ,
+        feature_size: int = 48,
+        hidden_size: int = 768,
+        mlp_dim: int = 3072,
+        num_heads: int = 12,
+        pos_embed: str = "perceptron",
+        norm_name: Union[Tuple, str] = "batch",
+        conv_block: bool = False,
+        res_block: bool = True,
+        spatial_dims: int = 3,
+        in_channels: int=1,
+        #out_channels: int,
+    ) -> None:
+       
+        super().__init__()
+        self.hidden_size = hidden_size
+        self.feat_size=(config.img_size[0]//32,config.img_size[1]//32,config.img_size[2]//32)
+        if_convskip = config.if_convskip
+        self.if_convskip = if_convskip
+        if_transskip = config.if_transskip
+        self.if_transskip = if_transskip
+        embed_dim = config.embed_dim
+        self.transformer = SwinTransformer_Unetr(patch_size=config.patch_size,
+                                           in_chans=config.in_chans,
+                                           embed_dim=config.embed_dim,
+                                           depths=config.depths,
+                                           num_heads=config.num_heads,
+                                           window_size=config.window_size,
+                                           mlp_ratio=config.mlp_ratio,
+                                           qkv_bias=config.qkv_bias,
+                                           drop_rate=config.drop_rate,
+                                           drop_path_rate=config.drop_path_rate,
+                                           ape=config.ape,
+                                           spe=config.spe,
+                                           patch_norm=config.patch_norm,
+                                           use_checkpoint=config.use_checkpoint,
+                                           out_indices=config.out_indices,
+                                           pat_merg_rf=config.pat_merg_rf,
+                                           )
+        
+
+       
+
+        self.encoder1 = UnetrBasicBlock(
+            spatial_dims=spatial_dims,
+            in_channels=in_channels,
+            out_channels=feature_size,
+            kernel_size=3,
+            stride=1,
+            norm_name=norm_name,
+            res_block=True,
+        )
+
+        self.encoder2 = UnetrBasicBlock(
+            spatial_dims=spatial_dims,
+            in_channels=feature_size,
+            out_channels=feature_size,
+            kernel_size=3,
+            stride=1,
+            norm_name=norm_name,
+            res_block=True,
+        )
+
+        self.encoder3 = UnetrBasicBlock(
+            spatial_dims=spatial_dims,
+            in_channels=2 * feature_size,
+            out_channels=2 * feature_size,
+            kernel_size=3,
+            stride=1,
+            norm_name=norm_name,
+            res_block=True,
+        )
+
+        self.encoder4 = UnetrBasicBlock(
+            spatial_dims=spatial_dims,
+            in_channels=4 * feature_size,
+            out_channels=4 * feature_size,
+            kernel_size=3,
+            stride=1,
+            norm_name=norm_name,
+            res_block=True,
+        )
+
+        self.encoder10 = UnetrBasicBlock(
+            spatial_dims=spatial_dims,
+            in_channels=16 * feature_size,
+            out_channels=16 * feature_size,
+            kernel_size=3,
+            stride=1,
+            norm_name=norm_name,
+            res_block=True,
+        )
+
+        self.decoder5 = UnetrUpBlock(
+            spatial_dims=spatial_dims,
+            in_channels=16 * feature_size,
+            out_channels=8 * feature_size,
+            kernel_size=3,
+            upsample_kernel_size=2,
+            norm_name=norm_name,
+            res_block=True,
+        )
+
+        self.decoder4 = UnetrUpBlock(
+            spatial_dims=spatial_dims,
+            in_channels=feature_size * 8,
+            out_channels=feature_size * 4,
+            kernel_size=3,
+            upsample_kernel_size=2,
+            norm_name=norm_name,
+            res_block=True,
+        )
+
+        self.decoder3 = UnetrUpBlock(
+            spatial_dims=spatial_dims,
+            in_channels=feature_size * 4,
+            out_channels=feature_size * 2,
+            kernel_size=3,
+            upsample_kernel_size=2,
+            norm_name=norm_name,
+            res_block=True,
+        )
+        self.decoder2 = UnetrUpBlock(
+            spatial_dims=spatial_dims,
+            in_channels=feature_size * 2,
+            out_channels=feature_size,
+            kernel_size=3,
+            upsample_kernel_size=2,
+            norm_name=norm_name,
+            res_block=True,
+        )
+
+        self.decoder1 = UnetrUpBlock(
+            spatial_dims=spatial_dims,
+            in_channels=feature_size,
+            out_channels=feature_size,
+            kernel_size=3,
+            upsample_kernel_size=2,
+            norm_name=norm_name,
+            res_block=True,
+        )
+
+        self.out = UnetOutBlock(
+            spatial_dims=spatial_dims, in_channels=feature_size, out_channels=out_channels
+        )  # type: ignore
+
+    def proj_feat(self, x, hidden_size, feat_size):
+        x = x.view(x.size(0), feat_size[0], feat_size[1], feat_size[2], hidden_size)
+        x = x.permute(0, 4, 1, 2, 3).contiguous()
+        return x
+
+    def forward(self, x_in):
+
+        x, out_feats = self.transformer(x_in)
+       
+        
+
+
+        enc44 = out_feats[-1]   # torch.Size([4, 384, 8, 8, 8])  
+        enc33 = out_feats[-2]   # torch.Size([4, 192, 16, 16, 16])
+        enc22 = out_feats[-3]   # torch.Size([4, 96, 32, 32, 32])   
+        enc11 = out_feats[-4]   # torch.Size([4, 48, 64, 64, 64])    
+        x=self.proj_feat(x, self.hidden_size, self.feat_size) # torch.Size([4, 768, 4, 4, 4])  
+
+
+        enc0 = self.encoder1(x_in)
+        
+        enc1 = self.encoder2(enc11)
+        
+        enc2 = self.encoder3(enc22)
+       
+        enc3 = self.encoder4(enc33)
+       
+
+        dec4 = self.encoder10(x)
+
+        dec3 = self.decoder5(dec4, enc44)
+        dec2 = self.decoder4(dec3, enc3)
+        dec1 = self.decoder3(dec2, enc2)
+        dec0 = self.decoder2(dec1, enc1)
+        out = self.decoder1(dec0, enc0)
+        logits = self.out(out)
+
+
+        return logits
+
