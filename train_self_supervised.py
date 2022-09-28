@@ -298,7 +298,7 @@ def main():
     best_val_loss = 1000.0
 
     chunk_num=2
-    batch_size = 6  # For 32GB GPU set 6, for A100 with 80GB set 20
+    batch_size = 6  
     lr = 0.0001*batch_size
 
     if os.path.exists(logdir_path)==False:
