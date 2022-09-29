@@ -143,11 +143,8 @@ def main_worker(gpu, args):
 
             pretrained_path = os.path.normpath('./Pre_trained/pre_train_weight.pt')  
 
-            vit_weights = torch.load(pretrained_path)
+            pretrained_dict = torch.load(pretrained_path)
             
-            
-            
-            pretrained_dict = vit_weights#...
             for key in list(pretrained_dict.keys()):
                 pretrained_dict[key.replace('module.', '')] = pretrained_dict.pop(key)
             model.transformer.load_state_dict(pretrained_dict,strict=False)
