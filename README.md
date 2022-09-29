@@ -37,9 +37,6 @@ python train_self_supervised.py
 ## for fine tuning
 python fine_tuning_swin_3D.py  --resume_ckpt
 
-<!-- Coming -->
-## next
-Pre-trained model using 128x128x128 with large swin model
 <!-- ACKNOWLEDGMENTS -->
 ## Our code refered the following implementation
 
