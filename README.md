@@ -37,6 +37,9 @@ python train_self_supervised.py
 ## for fine tuning
 python fine_tuning_swin_3D.py  --resume_ckpt
 
+## pretrained weight
+We offered the pre-trained weight with batch size of 96x96x96, depth= = (2, 2, 4, 2), head= (4, 4, 4, 4), window size= (4,4,4).
+More pre-trained weights with different transformer configurations will be release soon.
 <!-- ACKNOWLEDGMENTS -->
 ## Our code refered the following implementation
 
