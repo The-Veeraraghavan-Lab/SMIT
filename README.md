@@ -1,14 +1,14 @@
 
-
-
-
-
 <!-- ABOUT THE PROJECT -->
-## About The Project
+## Self-supervised 3D anatomy segmentation using self-distilled masked image transformer (SMIT)
+### Jue Jiang, Neelam Tyagi, Kathryn Tringale, Christopher Crane, and Harini Veeraraghavan
+
+ Self-supervised 3D anatomy segmentation using self-distilled masked image transformer (SMIT) is a image transformer model constructed using the SWIN transformer backbone. SMIT is pretrained using a large number of unlabeled 3D computed tomography (CT) image sets sourced from insitutional and public data repositories from a variety of diseases including the lung cancer, COVID-19, head and neck cancer, kidney, liver, and other abdominal cancers. SMIT is pretrained using a masked image prediction or dense pixel regression task, as well as self-distillation tasks using patch token and global token distillation. Following pretraining, the network can easily be fine tuned and applied to generating segmentation in other imaging modalities never used in 
+pretraining such as magnetic resonance imaging (MRI). Additional details of this work are in: 
+
+https://arxiv.org/abs/2205.10342
 
 
- Self-supervised 3D anatomy segmentation using self-distilled masked image transformer (SMIT). SMIT used both global, patch and pixel level information for self-supervised learning in self-distillization manner. 
- 
  <div align="center">
   <img width="90%" alt="SMIT framework" src="figures/fig.png">
 </div>
